@@ -1,0 +1,53 @@
+#define TRIG_PIN 9  // Trigger pin of the ultrasonic sensor
+#define ECHO_PIN 10 // Echo pin of the ultrasonic sensor
+#define BUZZER_PIN 8  // Pin connected to the buzzer
+
+long duration;
+int distance;
+int bin_depth = 40;  // Depth of the bin in cm (adjust according to the actual bin size)
+int fill_level_threshold = 10;  // Bin is considered full when the remaining space is less than 10 cm
+
+void setup() {
+  pinMode(TRIG_PIN, OUTPUT);  // Set the trigger pin as output
+  pinMode(ECHO_PIN, INPUT);   // Set the echo pin as input
+  pinMode(BUZZER_PIN, OUTPUT);  // Set the buzzer pin as output
+
+  Serial.begin(9600);  // Start the serial communication to display the fill level
+}
+
+void loop() {
+  // Trigger the ultrasonic sensor
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  // Read the echo time
+  duration = pulseIn(ECHO_PIN, HIGH);
+
+  // Calculate distance in cm
+  distance = duration * 0.034 / 2;
+
+  // Calculate how full the bin is
+  int fill_level = bin_depth - distance;
+
+  // Print the distance and fill level to the serial monitor
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  Serial.print("Fill level: ");
+  Serial.print(fill_level);
+  Serial.println(" cm");
+
+  // Check if the bin is full
+  if (fill_level > (bin_depth - fill_level_threshold)) {
+    Serial.println("Bin is full!");
+    digitalWrite(BUZZER_PIN, HIGH);  // Turn the buzzer on when the bin is full
+  } else {
+    digitalWrite(BUZZER_PIN, LOW);   // Turn the buzzer off if the bin is not full
+  }
+
+  delay(1000);  // Wait for 1 second before the next measurement
+}
